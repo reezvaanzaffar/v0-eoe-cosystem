@@ -1,65 +1,69 @@
-export interface AnalyticsData {
-  id: string
-  source: string
-  timestamp: string
-  metrics: Record<string, number>
-  dimensions: Record<string, string>
-}
+// Analytics Types
 
-export interface FunnelMetrics {
-  visitorToQuiz: number
-  quizToEmail: number
-  emailToInquiry: number
-  inquiryToEnrollment: number
-  overallConversion: number
-}
-
-export interface PersonaMetrics {
-  persona: "startup-sam" | "scaling-sarah" | "learning-larry" | "investor-ian" | "provider-priya"
+// Funnel Data Types
+export interface FunnelStage {
+  name: string
   visitors: number
-  quizCompletions: number
-  emailCaptures: number
-  serviceInquiries: number
-  enrollments: number
+  conversions: number
+}
+
+export interface FunnelData {
+  stages: FunnelStage[]
+}
+
+// Persona Data Types
+export interface PersonaMetrics {
+  name: string
+  score: number
+  engagement: number
+  conversion: number
+}
+
+export interface PersonaData {
+  personas: PersonaMetrics[]
+}
+
+// Shadow Funnel Data Types
+export interface TouchpointData {
+  name: string
+  count: number
+  impact: "low" | "medium" | "high"
+}
+
+export interface ShadowFunnelData {
+  touchpoints: TouchpointData[]
+}
+
+// Revenue Data Types
+export interface RevenueSource {
+  name: string
   revenue: number
-  conversionRate: number
+  percentage: number
 }
 
-export interface ShadowFunnelMetrics {
-  exitIntentTriggers: number
-  exitIntentConversions: number
-  emailRecoveryOpens: number
-  emailRecoveryClicks: number
-  retargetingImpressions: number
-  retargetingClicks: number
-  recoveryConversions: number
-  recoveryRevenue: number
+export interface RevenueData {
+  sources: RevenueSource[]
 }
 
-export interface IntegrationStatus {
-  platform: string
-  status: "connected" | "error" | "syncing"
+// Integration Data Types
+export interface IntegrationPlatform {
+  name: string
+  status: "healthy" | "warning" | "error"
   lastSync: string
-  errorMessage?: string
-  dataPoints: number
 }
 
-export interface Alert {
-  id: string
-  type: "warning" | "critical" | "info"
-  title: string
-  message: string
-  timestamp: string
-  acknowledged: boolean
-  threshold: number
-  currentValue: number
+export interface IntegrationData {
+  platforms: IntegrationPlatform[]
 }
 
-export interface RevenueAttribution {
-  channel: string
-  firstTouch: number
-  lastTouch: number
-  linear: number
-  timeDecay: number
-  position: number
+// Analytics State
+export interface AnalyticsState {
+  funnelData: FunnelData
+  personaData: PersonaData
+  shadowFunnelData: ShadowFunnelData
+  revenueData: RevenueData
+  integrationData: IntegrationData
+  isLoading: boolean
+  error: string | null
+  fetchAnalyticsData: () => Promise<void>
 }

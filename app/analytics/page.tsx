@@ -1,7 +1,10 @@
-import UnifiedAnalyticsDashboard from "@/analytics-dashboard"
+import { AnalyticsDashboard } from "../../analytics-dashboard"
 
-const AnalyticsPage = () => {
-  return <UnifiedAnalyticsDashboard />
+export const metadata = {
+  title: "Analytics Dashboard",
+  description: "Comprehensive analytics dashboard for tracking performance metrics",
 }
 
-export default AnalyticsPage
+export default function AnalyticsPage() {
+  return <AnalyticsDashboard />
+}

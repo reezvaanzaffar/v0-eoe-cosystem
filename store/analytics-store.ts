@@ -1,77 +1,91 @@
 import { create } from "zustand"
 import type {
-  FunnelMetrics,
-  PersonaMetrics,
-  ShadowFunnelMetrics,
-  IntegrationStatus,
-  Alert,
-  RevenueAttribution,
-} from "@/types/analytics"
+  AnalyticsState,
+  FunnelData,
+  PersonaData,
+  ShadowFunnelData,
+  RevenueData,
+  IntegrationData,
+} from "../types/analytics"
 
-interface AnalyticsState {
-  funnelMetrics: FunnelMetrics | null
-  personaMetrics: PersonaMetrics[]
-  shadowFunnelMetrics: ShadowFunnelMetrics | null
-  integrationStatuses: IntegrationStatus[]
-  alerts: Alert[]
-  revenueAttribution: RevenueAttribution[]
-  isLoading: boolean
-  selectedTimeframe: "24h" | "7d" | "30d" | "90d"
-  selectedPersona: string | "all"
-
-  // Actions
-  setFunnelMetrics: (metrics: FunnelMetrics) => void
-  setPersonaMetrics: (metrics: PersonaMetrics[]) => void
-  setShadowFunnelMetrics: (metrics: ShadowFunnelMetrics) => void
-  updateIntegrationStatus: (status: IntegrationStatus) => void
-  addAlert: (alert: Alert) => void
-  acknowledgeAlert: (id: string) => void
-  setTimeframe: (timeframe: "24h" | "7d" | "30d" | "90d") => void
-  setSelectedPersona: (persona: string) => void
-  refreshData: () => Promise<void>
+// Mock data for initial state
+const initialFunnelData: FunnelData = {
+  stages: [
+    { name: "Awareness", visitors: 5000, conversions: 1500 },
+    { name: "Consideration", visitors: 1500, conversions: 600 },
+    { name: "Decision", visitors: 600, conversions: 200 },
+    { name: "Action", visitors: 200, conversions: 50 },
+  ],
 }
 
-export const useAnalyticsStore = create<AnalyticsState>((set, get) => ({
-  funnelMetrics: null,
-  personaMetrics: [],
-  shadowFunnelMetrics: null,
-  integrationStatuses: [],
-  alerts: [],
-  revenueAttribution: [],
+const initialPersonaData: PersonaData = {
+  personas: [
+    { name: "Startup Sam", score: 85, engagement: 72, conversion: 4.2 },
+    { name: "Scaling Sarah", score: 92, engagement: 86, conversion: 6.8 },
+    { name: "Learning Larry", score: 78, engagement: 65, conversion: 3.5 },
+    { name: "Investor Ian", score: 88, engagement: 74, conversion: 5.1 },
+    { name: "Provider Priya", score: 82, engagement: 70, conversion: 4.7 },
+  ],
+}
+
+const initialShadowFunnelData: ShadowFunnelData = {
+  touchpoints: [
+    { name: "Facebook Group", count: 1250, impact: "high" },
+    { name: "Podcast Mentions", count: 850, impact: "medium" },
+    { name: "Word of Mouth", count: 620, impact: "high" },
+    { name: "Partner Referrals", count: 480, impact: "medium" },
+    { name: "Industry Events", count: 320, impact: "low" },
+  ],
+}
+
+const initialRevenueData: RevenueData = {
+  sources: [
+    { name: "Direct Sales", revenue: 125000, percentage: 45 },
+    { name: "Website", revenue: 85000, percentage: 30 },
+    { name: "Partner Referrals", revenue: 42000, percentage: 15 },
+    { name: "Email Campaigns", revenue: 28000, percentage: 10 },
+  ],
+}
+
+const initialIntegrationData: IntegrationData = {
+  platforms: [
+    { name: "Google Analytics", status: "healthy", lastSync: "2 minutes ago" },
+    { name: "Facebook Pixel", status: "healthy", lastSync: "5 minutes ago" },
+    { name: "HubSpot", status: "warning", lastSync: "1 hour ago" },
+    { name: "Mailchimp", status: "healthy", lastSync: "15 minutes ago" },
+    { name: "Stripe", status: "healthy", lastSync: "10 minutes ago" },
+  ],
+}
+
+export const useAnalyticsStore = create<AnalyticsState>((set) => ({
+  funnelData: initialFunnelData,
+  personaData: initialPersonaData,
+  shadowFunnelData: initialShadowFunnelData,
+  revenueData: initialRevenueData,
+  integrationData: initialIntegrationData,
   isLoading: false,
-  selectedTimeframe: "7d",
-  selectedPersona: "all",
+  error: null,
 
-  setFunnelMetrics: (metrics) => set({ funnelMetrics: metrics }),
-  setPersonaMetrics: (metrics) => set({ personaMetrics: metrics }),
-  setShadowFunnelMetrics: (metrics) => set({ shadowFunnelMetrics: metrics }),
-
-  updateIntegrationStatus: (status) =>
-    set((state) => ({
-      integrationStatuses: state.integrationStatuses.map((s) => (s.platform === status.platform ? status : s)),
-    })),
-
-  addAlert: (alert) =>
-    set((state) => ({
-      alerts: [alert, ...state.alerts],
-    })),
-
-  acknowledgeAlert: (id) =>
-    set((state) => ({
-      alerts: state.alerts.map((alert) => (alert.id === id ? { ...alert, acknowledged: true } : alert)),
-    })),
-
-  setTimeframe: (timeframe) => set({ selectedTimeframe: timeframe }),
-  setSelectedPersona: (persona) => set({ selectedPersona: persona }),
-
-  refreshData: async () => {
+  fetchAnalyticsData: async () => {
     set({ isLoading: true })
     try {
-      // Simulate API calls to refresh data
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-      // In real implementation, this would call your API endpoints
-    } finally {
-      set({ isLoading: false })
+      // In a real app, this would be an API call
+      // For now, we'll just simulate a delay and return mock data
+      await new Promise((resolve) => setTimeout(resolve, 500))
+
+      set({
+        funnelData: initialFunnelData,
+        personaData: initialPersonaData,
+        shadowFunnelData: initialShadowFunnelData,
+        revenueData: initialRevenueData,
+        integrationData: initialIntegrationData,
+        isLoading: false,
+      })
+    } catch (error) {
+      set({
+        error: error instanceof Error ? error.message : "An unknown error occurred",
+        isLoading: false,
+      })
     }
   },
 }))

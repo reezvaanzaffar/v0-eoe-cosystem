@@ -1,138 +1,156 @@
 "use client"
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { CheckCircle, XCircle, AlertCircle, Clock } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { CheckCircle, AlertCircle, Clock, RefreshCw } from "lucide-react"
 
-const integrations = [
-  {
-    platform: "Google Analytics 4",
-    status: "connected",
-    lastSync: "2 minutes ago",
-    dataPoints: 15420,
-    icon: "📊",
-  },
-  {
-    platform: "Facebook Insights",
-    status: "connected",
-    lastSync: "5 minutes ago",
-    dataPoints: 8930,
-    icon: "📘",
-  },
-  {
-    platform: "ConvertKit",
-    status: "connected",
-    lastSync: "1 hour ago",
-    dataPoints: 3240,
-    icon: "✉️",
-  },
-  {
-    platform: "Stripe",
-    status: "connected",
-    lastSync: "30 minutes ago",
-    dataPoints: 156,
-    icon: "💳",
-  },
-  {
-    platform: "ClickUp",
-    status: "error",
-    lastSync: "3 hours ago",
-    dataPoints: 0,
-    icon: "📋",
-    error: "API rate limit exceeded",
-  },
-  {
-    platform: "Teachable",
-    status: "syncing",
-    lastSync: "Syncing...",
-    dataPoints: 890,
-    icon: "🎓",
-  },
-]
+interface IntegrationPlatform {
+  name: string
+  status: "connected" | "disconnected" | "warning" | "pending"
+  lastSync: string
+  health: number
+  type: string
+}
 
-export function IntegrationStatus() {
+interface IntegrationStatusProps {
+  data: IntegrationPlatform[]
+}
+
+export function IntegrationStatus({ data }: IntegrationStatusProps) {
+  // Provide default data if none is provided
+  const defaultData: IntegrationPlatform[] = [
+    {
+      name: "Google Analytics 4",
+      status: "connected",
+      lastSync: "2024-01-20T10:30:00Z",
+      health: 98,
+      type: "Analytics",
+    },
+    {
+      name: "Stripe",
+      status: "connected",
+      lastSync: "2024-01-20T10:25:00Z",
+      health: 100,
+      type: "Payment",
+    },
+    {
+      name: "ConvertKit",
+      status: "warning",
+      lastSync: "2024-01-20T09:45:00Z",
+      health: 85,
+      type: "Email",
+    },
+    {
+      name: "HubSpot",
+      status: "connected",
+      lastSync: "2024-01-20T10:20:00Z",
+      health: 95,
+      type: "CRM",
+    },
+    {
+      name: "Facebook Graph API",
+      status: "pending",
+      lastSync: "2024-01-20T08:30:00Z",
+      health: 0,
+      type: "Social",
+    },
+    {
+      name: "Zapier",
+      status: "disconnected",
+      lastSync: "2024-01-19T15:20:00Z",
+      health: 0,
+      type: "Automation",
+    },
+  ]
+
+  const platformData = data.length > 0 ? data : defaultData
+
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "connected":
-        return <CheckCircle className="h-4 w-4 text-green-500" />
-      case "error":
-        return <AlertCircle className="h-4 w-4 text-red-500" />
-      case "syncing":
-        return <RefreshCw className="h-4 w-4 text-blue-500 animate-spin" />
+        return <CheckCircle className="h-5 w-5 text-green-500" />
+      case "disconnected":
+        return <XCircle className="h-5 w-5 text-red-500" />
+      case "warning":
+        return <AlertCircle className="h-5 w-5 text-yellow-500" />
+      case "pending":
+        return <Clock className="h-5 w-5 text-blue-500" />
       default:
-        return <Clock className="h-4 w-4 text-gray-400" />
+        return <XCircle className="h-5 w-5 text-gray-500" />
     }
   }
 
   const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "connected":
-        return <Badge className="bg-green-100 text-green-800">Connected</Badge>
-      case "error":
-        return <Badge className="bg-red-100 text-red-800">Error</Badge>
-      case "syncing":
-        return <Badge className="bg-blue-100 text-blue-800">Syncing</Badge>
-      default:
-        return <Badge className="bg-gray-100 text-gray-800">Disconnected</Badge>
+    const variants = {
+      connected: "default",
+      disconnected: "destructive",
+      warning: "secondary",
+      pending: "outline",
+    } as const
+
+    return (
+      <Badge variant={variants[status as keyof typeof variants] || "outline"}>
+        {status.charAt(0).toUpperCase() + status.slice(1)}
+      </Badge>
+    )
+  }
+
+  const formatLastSync = (timestamp: string) => {
+    const date = new Date(timestamp)
+    const now = new Date()
+    const diffMs = now.getTime() - date.getTime()
+    const diffMins = Math.floor(diffMs / 60000)
+
+    if (diffMins < 60) {
+      return `${diffMins} minutes ago`
+    } else if (diffMins < 1440) {
+      return `${Math.floor(diffMins / 60)} hours ago`
+    } else {
+      return `${Math.floor(diffMins / 1440)} days ago`
     }
   }
 
-  const connectedCount = integrations.filter((i) => i.status === "connected").length
-  const totalIntegrations = integrations.length
+  const connectedCount = platformData.filter((p) => p.status === "connected").length
+  const totalCount = platformData.length
+  const overallHealth = Math.round(platformData.reduce((sum, platform) => sum + platform.health, 0) / totalCount)
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          <span>Platform Integrations</span>
-          <Badge variant="outline">
-            {connectedCount}/{totalIntegrations} Connected
-          </Badge>
-        </CardTitle>
-        <CardDescription>Monitor your data source connections</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
-          {integrations.map((integration) => (
-            <div key={integration.platform} className="flex items-center justify-between p-3 border rounded-lg">
-              <div className="flex items-center space-x-3">
-                <span className="text-lg">{integration.icon}</span>
-                <div>
-                  <p className="font-medium text-sm">{integration.platform}</p>
-                  <p className="text-xs text-gray-600">{integration.dataPoints.toLocaleString()} data points</p>
-                  {integration.error && <p className="text-xs text-red-600">{integration.error}</p>}
-                </div>
-              </div>
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="text-center p-4 bg-gray-50 rounded-lg">
+          <div className="text-2xl font-bold text-green-600">{connectedCount}</div>
+          <div className="text-sm text-gray-600">Connected</div>
+        </div>
+        <div className="text-center p-4 bg-gray-50 rounded-lg">
+          <div className="text-2xl font-bold">{totalCount}</div>
+          <div className="text-sm text-gray-600">Total Integrations</div>
+        </div>
+        <div className="text-center p-4 bg-gray-50 rounded-lg">
+          <div className="text-2xl font-bold text-blue-600">{overallHealth}%</div>
+          <div className="text-sm text-gray-600">Overall Health</div>
+        </div>
+      </div>
 
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {platformData.map((platform) => (
+          <div key={platform.name} className="p-4 border rounded-lg bg-white">
+            <div className="flex items-center justify-between mb-2">
               <div className="flex items-center space-x-2">
-                <div className="text-right">
-                  <div className="flex items-center space-x-1 mb-1">
-                    {getStatusIcon(integration.status)}
-                    {getStatusBadge(integration.status)}
-                  </div>
-                  <p className="text-xs text-gray-500">{integration.lastSync}</p>
-                </div>
+                {getStatusIcon(platform.status)}
+                <span className="font-semibold">{platform.name}</span>
               </div>
+              {getStatusBadge(platform.status)}
             </div>
-          ))}
-        </div>
-
-        <div className="mt-4 pt-4 border-t">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium">Overall Health</p>
-              <p className="text-xs text-gray-600">
-                {connectedCount} of {totalIntegrations} integrations working properly
-              </p>
+            <div className="text-xs text-gray-600 mb-2">{platform.type}</div>
+            <div className="flex justify-between items-center text-sm">
+              <span>Health: {platform.health}%</span>
+              <span>Last sync: {formatLastSync(platform.lastSync)}</span>
             </div>
-            <Button variant="outline" size="sm">
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Sync All
-            </Button>
+            <div className="mt-2 bg-gray-200 rounded-full h-2">
+              <div className="bg-blue-600 h-2 rounded-full" style={{ width: `${platform.health}%` }} />
+            </div>
           </div>
-        </div>
-      </CardContent>
-    </Card>
+        ))}
+      </div>
+    </div>
   )
 }
